@@ -1,7 +1,7 @@
-extern crate time;
-extern crate serde;
-extern crate serde_json;
-extern  crate sha2;
+//extern crate time;
+//extern crate serde;
+//extern crate serde_json;
+//extern  crate sha2;
 
 use sha2::{Sha256,Digest};
 use core::time;
@@ -27,7 +27,7 @@ pub struct Blockheader{
 pub struct Block {
     header: Blockheader,
     count: u32,
-    transaction: Vec<Transaction>
+    transactions: Vec<Transaction>
 }
 
 pub struct Chain {
@@ -72,7 +72,7 @@ impl Chain {
     }
     pub fn generate_new_block(&mut self) -> bool{
         let header = Blockheader{
-            timestamp: time::new().to_timespec().sec,
+            timestamp: chrono::Utc::now().timestamp(),
             nonce: 0,
             pre_hash: self.last_hash(),
             difficulty: self.difficulty,
@@ -87,7 +87,7 @@ impl Chain {
         let mut block = Block{
             header,
             count: 0,
-            transaction: vec![]
+            transactions: vec![]
         };
         block.transactions.push(reward_trans);
         block.transactions.append(&mut self.curr_trans);
@@ -145,14 +145,15 @@ impl Chain {
         }
     }
     pub fn hash<T: serde::Serialize>(item: &T) -> String {
-        let input = serde_jason::to_string(&item).unwrap();
-        let mut hasher = Sha256::default();
-        hasher.input(input.as_bytes());
-        let res = hasher.result();
-        let vec_res = result.to_vec();
+        let input = serde_json::to_string(&item).unwrap();
+        let mut hasher = Sha256::new();
+        hasher.update(input.as_bytes());
+        let res = hasher.finalize();
+        let vec_res = res.to_vec();
 
         Chain::hex_to_string(vec_res.as_slice())
     }
+
     pub fn hex_to_string(vec_res: &[u8]) -> String {
         let mut s = String::new();
         for b in vec_res {
