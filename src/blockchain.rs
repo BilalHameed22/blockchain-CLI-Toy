@@ -76,7 +76,7 @@ impl Chain {
             nonce: 0,
             pre_hash: self.last_hash(),
             difficulty: self.difficulty,
-            merkle: String::from("Merkle Root")
+            merkle: String::new(),
 
         };
         let reward_trans = Transaction {
@@ -144,5 +144,20 @@ impl Chain {
             };
         }
     }
-    
+    pub fn hash<T: serde::Serialize>(item: &T) -> String {
+        let input = serde_jason::to_string(&item).unwrap();
+        let mut hasher = Sha256::default();
+        hasher.input(input.as_bytes());
+        let res = hasher.result();
+        let vec_res = result.to_vec();
+
+        Chain::hex_to_string(vec_res.as_slice())
+    }
+    pub fn hex_to_string(vec_res: &[u8]) -> String {
+        let mut s = String::new();
+        for b in vec_res {
+            write!(&mut s, "{:x}", b).expect("unable to write");
+        }
+        s
+    }
 }
